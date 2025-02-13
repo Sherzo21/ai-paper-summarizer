@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Paper Summarizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📄 AI Research Paper Summarizer</h1>
+
+        <!-- Summarization Section -->
+        <div class="section">
+            <h2>Summarize a Research Paper</h2>
+            <textarea id="summary-text" placeholder="Enter paper abstract..."></textarea>
+            <button onclick="summarizePaper()">Summarize</button>
+            <div id="summary-result" class="result-box"></div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="section">
+            <h2>Search for Similar Papers</h2>
+            <input type="text" id="search-query" placeholder="Enter search query">
+            <button onclick="searchPaper()">Search</button>
+            <div id="search-result" class="result-box"></div>
+        </div>
+
+        <!-- Citation Recommendation -->
+        <div class="section">
+            <h2>Check Citation Recommendation</h2>
+            <textarea id="citation-text" placeholder="Enter paper content..."></textarea>
+            <button onclick="recommendCitation()">Get Citation Score</button>
+            <div id="citation-result" class="result-box"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://your-vm-ip:8000"; // Replace with actual FastAPI server IP
+
+        // Function to Summarize a Paper
+        function summarizePaper() {
+            let text = document.getElementById("summary-text").value;
+            fetch(`${API_URL}/summarize/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("summary-result").innerHTML = `<strong>Summary:</strong> ${data.summary}`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        // Function to Search for Similar Papers
+        function searchPaper() {
+            let query = document.getElementById("search-query").value;
+            fetch(`${API_URL}/search/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("search-result").innerHTML = `<strong>Best Match:</strong> ${data.best_match}`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        // Function to Get Citation Recommendation
+        function recommendCitation() {
+            let text = document.getElementById("citation-text").value;
+            fetch(`${API_URL}/recommend/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("citation-result").innerHTML = `<strong>Citation Score:</strong> ${data.citation_score}`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
