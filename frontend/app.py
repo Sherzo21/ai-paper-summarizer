@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-API_URL = "http://127.0.0.1:8000/docs"
+API_URL = "http://127.0.0.1:8000"  # Correct API URL
 
 st.title("📄 AI Research Paper Summarizer")
 
@@ -9,9 +9,15 @@ st.title("📄 AI Research Paper Summarizer")
 st.header("Summarize a Research Paper")
 text = st.text_area("Enter paper abstract or text")
 if st.button("Summarize"):
-    response = requests.post(f"{API_URL}/summarize/", json={"text": text})
-    st.write("### Summary:")
-    st.write(response.json()["summary"])
+    try:
+        response = requests.post(f"{API_URL}/summarize/", json={"text": text})
+        if response.status_code == 200:
+            st.write("### Summary:")
+            st.write(response.json().get("summary", "No summary returned."))
+        else:
+            st.error(f"API Error: {response.status_code} - {response.text}")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Request failed: {e}")
 
 # Paper Search Section
 st.header("Search for Similar Papers")
@@ -29,4 +35,4 @@ if st.button("Check Citation Score"):
     st.write("### Citation Score:")
     st.write(response.json()["citation_score"])
 
-st.write("🚀 AI-Powered Paper Summarization & Search System")
+st.write("🚀 AI-Powered Paper Summarization & Search System by 셜조드")

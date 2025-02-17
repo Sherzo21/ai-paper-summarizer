@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
 import torch
@@ -36,30 +36,40 @@ class PaperRequest(BaseModel):
 # Summarization endpoint
 @app.post("/summarize/")
 def summarize(request: PaperRequest):
-    summary = summarizer(request.text, max_length=150, min_length=50, do_sample=False)
-    return {"summary": summary[0]['summary_text']}
+    try:
+        summary = summarizer(request.text, max_length=150, min_length=50, do_sample=False)
+        return {"summary": summary[0]['summary_text']}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Search endpoint
 @app.post("/search/")
 def search_paper(request: PaperRequest):
-    query_embedding = search_model.encode([request.text])
-    _, indices = index.search(np.array(query_embedding), 1)
-    return {"best_match": papers[indices[0][0]]}
+    try:
+        query_embedding = search_model.encode([request.text])
+        _, indices = index.search(np.array(query_embedding), 1)
+        return {"best_match": papers[indices[0][0]]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Citation recommendation endpoint
 @app.post("/recommend/")
 def recommend_citation(request: PaperRequest):
-    inputs = tokenizer(request.text, return_tensors="pt")
-    outputs = citation_model(**inputs)
-    score = torch.softmax(outputs.logits, dim=1)
-    
-    citation_needed = torch.argmax(score, dim=1).item()
-    confidence = score[0, citation_needed].item()
-    
-    return {
-        "recommendation": "Citation Recommended" if citation_needed == 1 else "No Citation Needed",
-        "confidence": round(confidence, 2)
-    }
+    try:
+        inputs = tokenizer(request.text, return_tensors="pt")
+        outputs = citation_model(**inputs)
+        score = torch.softmax(outputs.logits, dim=1)
+        citation_needed = torch.argmax(score, dim=1).item()
+        confidence = score[0, citation_needed].item()
+
+        return {
+            "recommendation": "Citation Recommended" if citation_needed == 1 else "No Citation Needed",
+            "confidence": round(confidence, 2),
+            "citation_score": confidence  # Add this line
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Run the FastAPI server
 if __name__ == "__main__":

@@ -11,11 +11,10 @@ def recommend_citation(text):
     outputs = model(**inputs)
     score = torch.softmax(outputs.logits, dim=1)
     
-    # Prediction results
     citation_needed = torch.argmax(score, dim=1).item()
     confidence = score[0, citation_needed].item()
     
-    return "Citation Recommended" if citation_needed == 1 else "No Citation Needed", confidence
+    return {"citation_score": confidence, "recommendation": "Citation Recommended" if citation_needed == 1 else "No Citation Needed"}
 
 # Example citation matching
 paper_text = "This paper discusses deep learning in medical imaging."
